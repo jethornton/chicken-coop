@@ -1,0 +1,19 @@
+io-test.py
+
+Input and Output test program for the chicken door.
+
+Connections
+Outputs:
+	Door Up pin 4
+	Door Down pin 5
+	Door Lock pin 6
+	Lights pin 7
+
+Inputs
+	Manual Up Switch pin 22
+	Manual Down Switch pin 23
+	Manual Light Switch pin 24
+	Door Up Sensor pin 26
+	Door Down Sensor pin 27
+
+
