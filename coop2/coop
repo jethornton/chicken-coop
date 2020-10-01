@@ -1,0 +1,453 @@
+#!/usr/bin/python3
+
+"""
+Dependencies
+sudo apt install python3-pyqt5
+sudo apt install python3-rpi.gpio
+sudo apt install python3-pip
+sudo pip3 install astral
+
+Setting up an NGINX web server on a Raspberry Pi
+
+sudo apt update
+sudo apt dist-upgrade
+sudo apt install nginx
+sudo /etc/init.d/nginx start
+
+add john to the www-data group
+sudo usermod -a -G www-data john
+
+give ownership to all the files and folders in the /var/www/html directory
+to the www-data group.
+
+sudo chown -R -f john:www-data /var/www/html
+
+copy index.html to var/www/html
+rm /var/www/html/index.nginx-debian.html
+
+sudo reboot
+
+Autostart
+sudo nano /etc/xdg/openbox/autostart
+
+/home/john/bin/coop &
+
+"""
+
+import sys, os, random
+
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5 import uic
+from PyQt5.QtCore import QTimer
+
+from astral import LocationInfo
+from astral.sun import sun, daylight
+import pytz
+
+from datetime import datetime, timedelta, timezone
+import RPi.GPIO as gpio
+
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import Gst
+
+import glob
+
+# basackwards relay constants
+RUN = False
+STOP = True
+ON = False
+OFF = True
+
+# setup I/O Constants
+# outputs
+DOOR_UP = 20
+DOOR_DOWN = 12
+DOOR_LOCK = 22
+LIGHTS = 23
+# inputs
+UP_PROX = 24
+DOWN_PROX = 25
+
+# setup I/O
+gpio.setmode(gpio.BCM)
+gpio.setwarnings(False)
+gpio.setup(DOOR_UP, gpio.OUT) # Motor FWD
+gpio.output(DOOR_UP, STOP)
+gpio.setup(DOOR_DOWN, gpio.OUT) # Motor REV
+gpio.output(DOOR_DOWN, STOP)
+gpio.setup(DOOR_LOCK, gpio.OUT) # Door Lock
+gpio.output(DOOR_LOCK, STOP)
+gpio.setup(LIGHTS, gpio.OUT) # Lights
+gpio.output(LIGHTS, STOP)
+gpio.setup(UP_PROX, gpio.IN,pull_up_down=gpio.PUD_DOWN) # Door Up Switch
+gpio.setup(DOWN_PROX, gpio.IN,pull_up_down=gpio.PUD_DOWN) # Door Down Switch
+
+
+PBTZ = pytz.timezone('US/Central')
+PBMO = LocationInfo("Poplar Bluff", "Midwest", "US/Central", 36.873512, -90.488008)
+HM = '%I:%M %p'
+HMS = '%I:%M:%S %p'
+
+DOOR_TIMEOUT = 75 # seconds allowed for the door to transition
+EXTRA_LIGHT = 60 # minutes of extra light after sunrise
+
+
+class Chicken(QMainWindow):
+	def __init__(self, parent=None):
+		super(Chicken, self).__init__()
+		path, filename = os.path.split(os.path.realpath(__file__))
+		uic.loadUi(os.path.join(path, 'coop.ui'), self)
+		self.setWindowTitle('Chicken Coop Deux')
+
+		# Astrial variables
+		self.todaySun = sun(PBMO.observer, date=datetime.today(), tzinfo=PBTZ)
+
+		# Temperature variables
+		self.temperature1 = 0.0
+
+		# Door variables
+		self.doorStatus = 'Unknown'
+		self.openTheDoor = False
+		self.doorOpening = False
+		self.closeTheDoor = False
+		self.doorClosing = False
+
+		# Update timer
+		updateTimer = QTimer(self)
+		updateTimer.timeout.connect(self.run)
+		updateTimer.start(1000)
+
+		# Set date on startup
+		self.today = datetime.today().date()
+
+		self.setConnects()
+		self.updateSun()
+
+		# Audio Player
+		Gst.init(None)
+		self.player = Gst.ElementFactory.make("playbin", "player")
+		self.player.connect('about-to-finish', self.on_about_to_finish)
+		#self.player.set('audio-sink', 'alsasink')
+		self.musicList = []
+		bus = self.player.get_bus()
+		bus.add_signal_watch()
+		bus.connect("message", self.on_message)
+
+		self.statusbar.showMessage('Ready to Crow')
+		self.showMaximized()
+
+	def setConnects(self):
+		self.nextPageBtn.clicked.connect(self.changePage)
+		self.backPageBtn.clicked.connect(self.changePage)
+		self.exitAppBtn.clicked.connect(self.close)
+
+		self.manualUpBtn.pressed.connect(self.manualUpStart)
+		self.manualUpBtn.released.connect(self.manualUpStop)
+		self.manualDownBtn.pressed.connect(self.manualDownStart)
+		self.manualDownBtn.released.connect(self.manualDownStop)
+		self.openDoorPb.clicked.connect(self.openDoor)
+		self.stopOpenPb.clicked.connect(self.stopOpen)
+		self.closeDoorPb.clicked.connect(self.closeDoor)
+		self.stopClosePb.clicked.connect(self.stopClose)
+
+		# Music
+		self.playMusicBtn.clicked.connect(self.playMusic)
+		self.stopMusicBtn.clicked.connect(self.stopMusic)
+
+		self.raiseVolumeBtn.clicked.connect(self.raiseVolume)
+		self.lowerVolumeBtn.clicked.connect(self.lowerVolume)
+
+
+	# on bootup/update set up the door/light open times for today
+	def updateSun(self):
+		self.todaySun = sun(PBMO.observer, date=datetime.today(), tzinfo=PBTZ)
+
+		# show todays sun events
+		self.dawnLbl.setText(self.todaySun['dawn'].strftime(HM))
+		self.sunriseLbl.setText(self.todaySun['sunrise'].strftime(HM))
+		self.noonLbl.setText(self.todaySun['noon'].strftime(HM))
+		self.sunsetLbl.setText(self.todaySun['sunset'].strftime(HM))
+		self.duskLbl.setText(self.todaySun['dusk'].strftime(HM))
+
+		# special for the chicks to keep the light on longer
+		#self.lightOffTime = self.todaySun['sunset'] - timedelta(minutes = 90)
+
+		self.lightOffTime = self.todaySun['sunrise'] + timedelta(minutes = EXTRA_LIGHT)
+		self.lightsOffLbl.setText(f"{self.lightOffTime.strftime(HM)}")
+		self.doorOpenTime = self.todaySun['sunrise']
+		self.doorOpensLbl.setText(self.doorOpenTime.strftime(HM))
+		self.doorCloseTime = self.todaySun['dusk']
+		self.doorClosesLbl.setText(self.doorCloseTime.strftime(HM))
+
+		# show todays sunlight
+		todaySun = daylight(PBMO.observer, date=datetime.today(), tzinfo=PBTZ)
+		todayLight = todaySun[1] - todaySun[0]
+
+		self.daylightLbl.setText(f"{str(todayLight).split('.')[0]}")
+		todayLightSeconds = todayLight.total_seconds()
+
+		yesterdaySun = daylight(PBMO.observer, date=datetime.today() - timedelta(days=1), tzinfo=PBTZ)
+		yesterdayLight = yesterdaySun[1] - yesterdaySun[0]
+		self.yesterdayDaylightLbl.setText(f"{str(yesterdayLight).split('.')[0]}")
+		yesterdayLightSeconds = yesterdayLight.total_seconds()
+
+		'''
+		Extra Light
+		If daylight is increasing and sunrise to sunset is less than 14 hours
+		add days since solstice time 4 minutes up to 14 hours.
+		
+		If dawn to sunset seconds is less than sunrise to sunset seconds
+		plus extra seconds then add extra seconds to sunrise to sunset seconds.
+		
+		if dawn to sunset seconds is more than sunrise to sunset seconds
+		plus extra seconds do nothing
+		'''
+		maxSunSeconds = 14 * 60 * 60 # 14 hours of sunlight
+		if todayLightSeconds > yesterdayLightSeconds: # daylight is increasing
+			dawn2sunset = self.todaySun['sunset'] - self.todaySun['dawn']
+			dawn2sunsetSeconds = dawn2sunset.total_seconds()
+			if todayLightSeconds < maxSunSeconds: # less that 14 hours of daylight
+				daysFromSolstice = self.solstice()
+				extraLightSeconds = daysFromSolstice * 4 * 60
+				if todayLightSeconds + extraLightSeconds > maxSunSeconds:
+					self.lightOnTime = self.todaySun['sunset'] - timedelta(seconds = maxSunSeconds)
+					self.totalLightLbl.setText(f"{timedelta(seconds = maxSunSeconds)}")
+				else:
+					self.lightOnTime = self.todaySun['sunset'] - timedelta(seconds = todayLightSeconds + extraLightSeconds)
+			else: # greater than 14 hours of daylight
+				self.lightOnTime = self.todaySun['sunrise']
+		else: # daylight is decreasing
+			self.lightOnTime = self.todaySun['sunrise']
+		self.lightsOnLbl.setText(f"{self.lightOnTime.strftime(HM)}")
+
+		self.updateStatus()
+
+	def solstice(self): # return the days since winter solstace
+		today=datetime.today()
+
+		for i in range(1, 180): #find last date with minLight
+			testDate = today - timedelta(days = i)
+			testSun = daylight(PBMO.observer, testDate, tzinfo=PBTZ)
+			testLight = (testSun[1] - testSun[0])
+			testLightSeconds = testLight.total_seconds()
+			previousDate = today - timedelta(days = i+1)
+			previousSun = daylight(PBMO.observer, previousDate, tzinfo=PBTZ)
+			previousLight = previousSun[1] - previousSun[0]
+			previousLightSeconds = previousLight.total_seconds()
+			if previousLightSeconds > testLightSeconds: # solstice
+				lightDays = (today - testDate).days
+				break
+		return lightDays
+
+	def updateStatus(self):
+		with open('/var/www/html/status.txt', 'w') as statusFile:
+			statusFile.write('Coop Ambient: {:.1f}F\n'.format(self.temperature1))
+			statusFile.write('Door Status: {}\n'.format(self.doorStatus))
+			statusFile.write('Door Opens: {}\n'.format(self.doorOpenTime.strftime(HM)))
+			statusFile.write('Door Closes: {}\n'.format(self.doorCloseTime.strftime(HM)))
+			statusFile.write('Dawn {} '.format(self.todaySun['dawn'].strftime(HM)))
+			statusFile.write('Sunrise {}\n'.format(self.todaySun['sunrise'].strftime(HM)))
+			statusFile.write('Sunset {} '.format(self.todaySun['sunset'].strftime(HM)))
+			statusFile.write('Dusk {}'.format(self.todaySun['dusk'].strftime(HM)))
+
+	def changePage(self):
+		if self.sender().objectName() == 'nextPageBtn':
+			self.stackedWidget.setCurrentIndex(1)
+		if self.sender().objectName() == 'backPageBtn':
+			self.stackedWidget.setCurrentIndex(0)
+
+	def manualUpStart(self):
+		if gpio.input(UP_PROX) == 0:
+			gpio.output(DOOR_UP, RUN)
+			self.doorStatus = 'Opening'
+		else:
+			gpio.output(DOOR_UP, STOP)
+
+	def manualUpStop(self):
+		gpio.output(DOOR_UP, STOP)
+
+	def manualDownStart(self):
+		if gpio.input(DOWN_PROX) == 0:
+			gpio.output(DOOR_DOWN, RUN)
+			self.doorStatus = 'Closing'
+		else:
+			gpio.output(DOOR_DOWN, STOP)
+
+	def manualDownStop(self):
+		gpio.output(DOOR_DOWN, STOP)
+
+	def openDoor(self):
+		if not self.doorOpening:
+			self.openTheDoor = True
+
+	def stopOpen(self):
+		self.openDoor = False
+		self.doorOpening = False
+		gpio.output(DOOR_UP, STOP)
+
+	def closeDoor(self):
+		if not self.doorClosing:
+			self.closeTheDoor = True
+
+	def stopClose(self):
+		self.closeDoor = False
+		self.doorClosing = False
+		gpio.output(DOOR_DOWN, STOP)
+
+
+	def run(self):
+		self.updateStatus()
+		now = datetime.now(PBTZ)
+		self.timeLbl.setText(now.strftime(HMS))
+		if self.today != datetime.today().date(): # see if it's a new day
+			print(f"It's a new day, today is {datetime.today().date().strftime('%m,%d %Y')}")
+			self.updateSun()
+			self.today = datetime.today().date()
+
+		# Light Controls
+		lightOn = now > self.lightOnTime and now < self.lightOffTime
+		if lightOn or self.lightPB.isChecked():
+			gpio.output(LIGHTS, ON)
+			self.lightStatusLbl.setText('Set On')
+		else:
+			gpio.output(LIGHTS, OFF)
+			self.lightStatusLbl.setText('Set Off')
+
+		if gpio.input(LIGHTS) == ON:
+			self.lightStatusLbl.setText('On')
+		else:
+			self.lightStatusLbl.setText('Off')
+
+		if self.openTheDoor:
+			self.doorOpening = True
+			gpio.output(DOOR_UP, RUN)
+
+		if self.doorOpening and gpio.input(UP_PROX) == 1:
+			self.doorOpening = False
+			self.openTheDoor = False
+			gpio.output(DOOR_UP, STOP)
+			self.doorStatus = 'Open'
+			self.doorStatusLbl.setText(self.doorStatus)
+
+		if self.closeTheDoor:
+			self.doorClosing = True
+			gpio.output(DOOR_DOWN, RUN)
+
+		if self.doorClosing and gpio.input(DOWN_PROX) == 1:
+			self.doorClosing = False
+			self.closeTheDoor = False
+			gpio.output(DOOR_DOWN, STOP)
+			self.doorStatus = 'Closed'
+			self.doorStatusLbl.setText(self.doorStatus)
+
+		# get temperature
+		base_dir = '/sys/bus/w1/devices/'
+		device_folder = glob.glob(base_dir + '28*')[0]
+		device_file = device_folder + '/w1_slave'
+		with open(device_file, 'r') as DS18B20:
+			lines = DS18B20.readlines()
+		if lines: # test for an empty list
+			if lines[0].find('YES'):
+				pos = lines[1].find("=")
+				data = lines[1][pos+1:].rstrip()
+				temp_c = float(data) / 1000.0
+				self.temperature1 = temp_c * 9.0 / 5.0 + 32.0
+				self.temperatureLbl.setText("Coop {:.1f}°F".format(self.temperature1))
+
+		# door relay status
+		if gpio.input(DOOR_UP) == 1:
+			self.doorOpenLbl.setText('Open Relay OFF')
+		else:
+			self.doorOpenLbl.setText('Open Relay ON')
+
+		if gpio.input(DOOR_DOWN) == 1:
+			self.doorCloseLbl.setText('Close Relay OFF')
+		else:
+			self.doorCloseLbl.setText('Close Relay ON')
+
+	def on_about_to_finish(self, *args):
+		if self.musicList:
+			filepath = os.path.join("/home/john/music", self.musicList.pop(0))
+			self.player.set_property('uri', "file://" + filepath)
+			#self.player.set_property('volume', 0.1)
+			self.player.set_state(Gst.State.PLAYING)
+			filename = os.path.basename(filepath)
+			#print(filename)
+			(f, e) = os.path.splitext(filename)
+			self.statusBar().showMessage(f"Now Playing {f}")
+			#print(f"Volume {self.player.get_property('volume')}")
+		else:
+			self.statusBar().showMessage("No More Songs")
+
+	def playMusic(self):
+		#print('playing')
+		self.musicList = os.listdir('/home/john/music')
+		random.shuffle(self.musicList)
+
+		filepath = os.path.join("/home/john/music", self.musicList.pop(0))
+		self.player.set_property("uri", "file://" + filepath)
+		#self.player.set_property('volume', 0.1)
+		self.player.set_state(Gst.State.PLAYING)
+		#print(f"Volume {self.player.get_property('volume')}")
+		#print(self.player.get_property('current-uri'))
+		#filename = os.path.basename(self.player.get_property('current-uri'))
+		filename = os.path.basename(filepath)
+		#print(filename)
+		(f, e) = os.path.splitext(filename)
+		self.statusBar().showMessage(f"First Song {f}")
+		cv = self.player.get_property('volume')
+		self.volumeLbl.setText(f"Volume {cv}")
+
+	def stopMusic(self):
+		self.player.set_state(Gst.State.NULL)
+		self.statusBar().showMessage("Music Stopped")
+
+	def on_message(self, bus, message):
+		#print(message.type)
+		t = message.type
+		if t == Gst.MessageType.EOS:
+			self.player.set_state(Gst.State.NULL)
+			#self.button.set_label("Start")
+			self.statusBar().showMessage('Done')
+		if t == Gst.MessageType.ERROR:
+			err, dbg = msg.parse_error()
+			print("ERROR:", msg.src.get_name(), ":", err.message)
+			self.qstMessage.setText(f"{msg.src.get_name()}\n{err.message}")
+
+	def raiseVolume(self):
+		cv = self.player.get_property('volume')
+		#print(f"Current Volume {cv}")
+		nv = round(cv + 0.05, 2)
+		#print(f"New Volume {nv}")
+		self.volumeLbl.setText(f"Volume {nv}")
+		if nv > 1.0:
+			nv = 1.0
+		self.player.set_property('volume', nv)
+
+	def lowerVolume(self):
+		cv = self.player.get_property('volume')
+		#print(f"Current Volume {cv}")
+		nv = round(cv - 0.05, 2)
+		#print(f"New Volume {nv}")
+		self.volumeLbl.setText(f"Volume {nv}")
+		if nv < 0.0:
+			nv = 0.0
+		self.player.set_property('volume', nv)
+
+	def muteVolume(self):
+		if self.player.get_property('mute') == False:
+			self.player.set_property('mute', True)
+			self.muteBtn.setText('Muted')
+		else:
+			self.player.set_property('mute', False)
+			self.muteBtn.setText('Mute')
+		#self.player.set_property('volume', 0.0)
+		print(f"Volume {self.player.get_property('volume')}")
+
+
+if __name__ == '__main__':
+	app = QApplication(sys.argv)
+	#app.aboutToQuit.connect(Chicken.cleanExit)
+	window = Chicken()
+	sys.exit(app.exec_())

@@ -1,0 +1,20 @@
+sudo apt update
+sudo apt dist-upgrade
+sudo apt auto-remove
+
+sudo pip3 install astral
+astral installs pytz so no need to install it
+sudo pip3 install pytz
+sudo pip3 install schedule
+sudo apt install python3-gpiozero
+
+dependency needed to play mp3 files
+sudo apt install python3-pyqt5.qtmultimedia
+sudo apt-get install libqt5multimedia5-plugins
+
+sudo apt update
+sudo apt install libgl1-mesa-dev libglu1-mesa-dev
+sudo apt-get install gstreamer0.10*
+
+that didn't do anything useful
+sudo ln -s /usr/lib/arm-linux-gnueabihf/libGLESv2.so.2 /usr/lib/arm-linux-gnueabihf/libGLESv2.so

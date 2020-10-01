@@ -1,0 +1,4 @@
+
+For Gst
+sudo apt install gstreamer-1.0
+

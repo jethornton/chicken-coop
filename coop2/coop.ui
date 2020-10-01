@@ -1,0 +1,975 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QPushButton {
+min-height: 50px;
+min-width: 50px;
+font: 12pt &quot;DajaVu Sans&quot;;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="font">
+       <font>
+        <family>Courier</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="page_1">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="3" column="1">
+         <widget class="QGroupBox" name="groupBox_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Yesterday Light Stats</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>DayLight</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="yesterdayDaylightLbl">
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="3">
+         <widget class="QFrame" name="horizontalFrame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QPushButton" name="exitAppBtn">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(239, 41, 41);</string>
+             </property>
+             <property name="text">
+              <string>Exit
+App</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="stopDoorPB">
+             <property name="text">
+              <string>Stop
+Door</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="lightPB">
+             <property name="text">
+              <string>Lights
+Auto</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="playMusicBtn">
+             <property name="text">
+              <string>Play
+Music</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="stopMusicBtn">
+             <property name="text">
+              <string>Stop
+Music</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="nextPageBtn">
+             <property name="text">
+              <string>Next</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1" rowspan="2">
+         <widget class="QGroupBox" name="groupBox_5">
+          <property name="font">
+           <font>
+            <family>Courier</family>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="title">
+           <string>Light Stats</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="1" column="1">
+            <widget class="QLabel" name="totalLightLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Lights On @</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="lightsOnLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Lights Off @</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_12">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Total Light</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="lightsOffLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Light Status</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="lightStatusLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>DayLight</string>
+             </property>
+             <property name="margin">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="daylightLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+             <property name="margin">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0" rowspan="2">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="font">
+           <font>
+            <family>Courier</family>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="title">
+           <string>Astral Stats</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="1" column="1">
+            <widget class="QLabel" name="sunriseLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="dawnLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Sunset</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="duskLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Sunrise</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="sunsetLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Dusk</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Noon</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="noonLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Dawn</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="2" rowspan="2">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Courier</family>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="title">
+           <string>Door Status</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="1" column="1">
+            <widget class="QLabel" name="doorClosesLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_16">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Door Status</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="doorStatusLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="doorOpensLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Door Closes</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Door Opens</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Down Prox</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_15">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Up Prox</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="downProxLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="upProxLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Transit Time</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLabel" name="doorTimeLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Temperature</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_11">
+           <item row="0" column="0">
+            <widget class="QLabel" name="temperatureLbl">
+             <property name="font">
+              <font>
+               <family>Courier</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="timeLbl">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Courier</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" colspan="3">
+         <widget class="QGroupBox" name="groupBox_7">
+          <property name="title">
+           <string>Gstreamer Status</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="0" column="0">
+            <widget class="QLabel" name="qstMessage">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_2">
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Music Controls</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="1" column="0">
+            <widget class="QPushButton" name="lowerVolumeBtn">
+             <property name="text">
+              <string>Decrease
+Volume</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="volumeLbl">
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+              </font>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::Box</enum>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="raiseVolumeBtn">
+             <property name="text">
+              <string>Increase
+Volume</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QFrame" name="horizontalFrame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="backPageBtn">
+             <property name="text">
+              <string>Back</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="title">
+           <string>Manual Door Controls</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="3" column="1">
+            <widget class="QPushButton" name="manualDownBtn">
+             <property name="text">
+              <string>Manual
+Down</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="openDoorPb">
+             <property name="text">
+              <string>Open
+Door</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="closeDoorPb">
+             <property name="text">
+              <string>Close
+Door</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QPushButton" name="resetDoorBtn">
+             <property name="text">
+              <string>Reset Door</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QPushButton" name="doorModePb">
+             <property name="text">
+              <string>Door Auto</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QPushButton" name="manualUpBtn">
+             <property name="text">
+              <string>Manual
+Up</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="stopOpenPb">
+             <property name="text">
+              <string>Stop
+Open</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="stopClosePb">
+             <property name="text">
+              <string>Stop
+Close</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_10">
+          <property name="title">
+           <string>Extra Light</string>
+          </property>
+          <widget class="QPushButton" name="extraLightPb">
+           <property name="geometry">
+            <rect>
+             <x>12</x>
+             <y>242</y>
+             <width>80</width>
+             <height>52</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>No</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QLabel" name="doorOpenLbl">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>60</y>
+             <width>181</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="doorCloseLbl">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>90</y>
+             <width>201</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

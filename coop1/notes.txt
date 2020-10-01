@@ -1,0 +1,42 @@
+To run as a service you must sudo install the libraries
+
+sudo pip3 install astral
+sudo pip3 install pytz
+sudo pip3 install schedule
+sudo pip3 install digole
+sudo apt install python3-pyqt4
+
+ssh pi@192.168.1.125
+
+
+systemctl status coop.service
+sudo systemctl enable coop.service
+sudo systemctl restart coop.service
+sudo systemctl start coop.service
+sudo systemctl stop coop.service
+
+if you change the .service file run:
+sudo systemctl daemon-reload
+
+sudo nano /lib/systemd/system/coop.service
+
+coop.service
+
+[Unit]
+Description=Coop Uno Automation
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -u /home/john/bin/coop
+WorkingDirectory=/home/john/bin
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+To copy the files from coop32
+scp pi@192.168.1.125:/home/pi/bin/coop32 coop32
+scp pi@192.168.1.125:/home/pi/bin/coop-notes.txt notes.txt
+scp pi@192.168.1.125:/home/pi/bin/coop coop

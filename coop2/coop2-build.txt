@@ -1,0 +1,102 @@
+Burn 2019-09-26-raspbian-buster-lite.zip to the SD card
+Log in pi raspberry
+sudo raspi-config
+Interfacing options > SSH > Enable Yes
+Advanced Options > Expand Filesystem
+Finish and reboot
+
+change user name
+Login with your old credentials and add a new user
+sudo adduser pia
+set the password and press enter until you get the is this correct then y
+Allow the new user to run sudo by adding the user to sudo group:
+sudo adduser pia sudo
+
+Log out with the command 
+exit
+
+sudo reboot
+log in as pia on the Rpi
+
+ssh back in as pia
+ssh pia@192.168.1.130
+
+sudo usermod -l newUsername oldUsername
+sudo usermod -l john pi
+
+sudo usermod -d /home/newHomeDir -m newUsername
+sudo usermod -d /home/john -m john
+
+update the password
+sudo passwd john
+
+sudo reboot
+log in as john on the Rpi
+
+ssh back in as john
+ssh 192.168.1.130
+
+Delete temporary user and folder
+sudo deluser pia
+sudo rm -r /home/pia
+
+sudo apt update
+sudo apt dist-upgrade
+sudo apt clean
+
+Install OpenBox https://gnipsel.com/linuxcnc/uspace/rpi4-ob.html
+
+Set static IP
+
+sudo nano /etc/dhcpcd.conf
+
+# Example static IP configuration:
+interface eth0
+static ip_address=192.168.1.130/24
+
+sudo nano /etc/hostname
+coop2
+
+sudo nano /etc/hosts
+coop2
+
+sudo nano .bashrc
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+
+sudo apt install python3-pyqt5
+dependency needed to play mp3 files
+sudo apt install python3-pyqt5.qtmultimedia
+
+USB speakers
+
+
+All we have to do is tell Raspbian to look at "card #1" for the default audio.
+Card #0 is the built in audio, so this is fairly straightforward.
+
+sudo nano /usr/share/alsa/alsa.conf
+and look for the following two lines:
+
+defaults.ctl.card 0
+
+defaults.pcm.card 0
+
+Change both “0” to “1” and then save the file. That’s it!
+
+To fix the issue of libEGL being renamed in Debian 10
+cd /opt/vc/lib
+sudo ln -s libbrcmEGL.so libEGL.so
+sudo ln -s libbrcmGLESv2.so libGLESv2.so
+
+sudo reboot
+ssh 192.168.1.130
+
+
