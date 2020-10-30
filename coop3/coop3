@@ -1,0 +1,190 @@
+#!/usr/bin/python3
+
+"""
+Description:
+Coop Door Control with GUI
+
+Requirements:
+Touch Screen or Monitor and Keyboard and Mouse
+
+Dependencies
+sudo apt install python3-pyqt5
+sudo apt install python3-rpi.gpio
+sudo apt install python3-pip
+sudo pip3 install astral
+"""
+
+import time, sys, os, math
+
+from astral import LocationInfo
+from astral.sun import sun, daylight
+import pytz
+
+from datetime import datetime, timedelta, timezone
+from time import monotonic
+from time import sleep
+
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import QTimer
+from PyQt5 import uic
+
+import RPi.GPIO as gpio
+
+from rpi_utilities import debounce
+
+PBTZ = pytz.timezone('US/Central')
+PBMO = LocationInfo("Poplar Bluff", "Midwest", "US/Central", 36.873512, -90.488008)
+HM = '%I:%M %p'
+HMS = '%I:%M:%S %p'
+
+# setup I/O Constants
+# outputs
+DOOR_UP = 17
+DOOR_DOWN = 18
+LIGHTS = 23
+
+# inputs
+UP_PROX = 24
+DOWN_PROX = 25
+
+# relay constants
+RUN = True
+STOP = False
+
+# setup I/O
+gpio.setmode(gpio.BCM)
+gpio.setwarnings(False)
+gpio.setup(DOOR_UP, gpio.OUT) # Motor FWD
+gpio.setup(DOOR_DOWN, gpio.OUT) # Motor REV
+gpio.setup(LIGHTS, gpio.OUT) # Lights
+
+class main(QMainWindow):
+	def __init__(self):
+		super().__init__()
+		path, filename = os.path.split(os.path.realpath(__file__))
+		uic.loadUi(os.path.join(path, 'coop3.ui'), self)
+		self.setWindowTitle('Chicken Coop Tres')
+
+		self.doorStatus = 'unknown'
+
+		updateTimer = QTimer(self)
+		updateTimer.timeout.connect(self.update)
+		updateTimer.start(100)
+
+		self.doorState = {0: 'Open', 1: 'Closed'}
+
+		self.upProxState = debounce(pin=UP_PROX, delay=0.001)
+		self.downProxState = debounce(pin=DOWN_PROX, delay=0.001)
+		self.upProx = self.upProxState.current()
+		self.upProxLbl.setText(self.doorState[self.upProx])
+		self.downProx = self.downProxState.current()
+		self.downProxLbl.setText(self.doorState[self.downProx])
+
+		# Set date on startup
+		self.today = datetime.today().date()
+
+		self.setConnections()
+		self.updateSun()
+
+		self.statusbar.showMessage('Ready to Crow')
+		#self.showMaximized()
+		self.show()
+
+
+	def setConnections(self):
+		self.doorResetBtn.clicked.connect(self.resetDoor)
+
+	def resetDoor(self):
+		self.doorStatus = 'unknown'
+		print('Reset Door')
+
+	def openDoor(self):
+		#print('open')
+		self.doorStatus = 'opening'
+		print('Opening the Door')
+		start = int(monotonic())
+		gpio.output(DOOR_UP, RUN)
+		while self.upProx != 1:
+			self.upProx = self.upProxState.update()
+			current = int(monotonic())
+			transitTime = current - start
+			self.transitTimeLbl.setText(str(transitTime))
+			self.repaint()
+			if transitTime > 90:
+				print('Door is Broken')
+				self.doorStatus = 'broken'
+				break
+			elif self.upProx == 1:
+				print('Door is Open')
+				self.doorStatus = 'open'
+				self.upProxLbl.setText(self.doorState[self.upProx])
+		gpio.output(DOOR_UP, STOP)
+
+	def closeDoor(self):
+		self.doorStatus = 'closing'
+		print('Closing the Door')
+		self.downProx = self.downProxState.update()
+		start = int(monotonic())
+		gpio.output(DOOR_DOWN, RUN)
+		while self.downProx != 1:
+			self.downProx = self.downProxState.update()
+			current = int(monotonic())
+			transitTime = current - start
+			self.transitTimeLbl.setText(str(transitTime))
+			self.repaint()
+			if transitTime > 90:
+				print('Door is Broken')
+				self.doorStatus = 'broken'
+				break
+			elif self.downProx == 1:
+				print('Door is Closed')
+				self.doorStatus = 'closed'
+				self.downProxLbl.setText(self.doorState[self.downProx])
+		gpio.output(DOOR_DOWN, STOP)
+
+	def updateSun(self):
+		self.todaySun = sun(PBMO.observer, date=datetime.today(), tzinfo=PBTZ)
+		self.dawnLbl.setText(self.todaySun['dawn'].strftime(HMS))
+		self.sunriseLbl.setText(self.todaySun['sunrise'].strftime(HMS))
+		daylight = self.todaySun['sunset'] - self.todaySun['sunrise']
+		hours = math.trunc(daylight.seconds / 3600)
+		minutes = math.trunc(daylight.seconds % 3600 / 60)
+		seconds = math.trunc(daylight.seconds % 60)
+		self.daylightLbl.setText(f'{hours}:{minutes}:{seconds}')
+		self.sunsetLbl.setText(self.todaySun['sunset'].strftime(HMS))
+		self.duskLbl.setText(self.todaySun['dusk'].strftime(HMS))
+
+
+	def update(self):
+		if self.today != datetime.today().date(): # see if it's a new day
+			print(f"It's a new day, today is {datetime.today().date().strftime('%m,%d %Y')}")
+			self.updateSun()
+			self.today = datetime.today().date()
+
+		doList = ['opening', 'open', 'broken']
+		dcList = ['closing', 'closed', 'broken']
+		now = datetime.now(PBTZ)
+		sunrise = self.todaySun['sunrise']
+		sunset = self.todaySun['sunset']
+		if now > sunrise and now < sunset:
+			doorOpen = True
+		else:
+			doorOpen = False
+		if doorOpen and self.doorStatus not in doList:
+			if not self.upProx:
+				print('Calling openDoor')
+				self.openDoor()
+				if self.doorStatus == 'open':
+					print('openDoor Finished')
+		if not doorOpen and self.doorStatus not in dcList:
+			if not self.downProx:
+				print('Calling closeDoor')
+				self.closeDoor()
+				if self.doorStatus == 'closed':
+					print('closeDoor Finished')
+
+
+if __name__ == '__main__':
+	app = QApplication(sys.argv)
+	gui = main()
+	sys.exit(app.exec_())
