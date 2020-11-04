@@ -72,7 +72,6 @@ class main(QMainWindow):
 		updateTimer.start(100)
 
 		self.doorState = {0: 'Open', 1: 'Closed'}
-		self.startClock = 0
 
 		self.upProxState = debounce(pin=UP_PROX, delay=0.001)
 		self.downProxState = debounce(pin=DOWN_PROX, delay=0.001)
@@ -104,12 +103,12 @@ class main(QMainWindow):
 		#print('open')
 		self.doorStatus = 'opening'
 		print('Opening the Door')
-		self.startClock = int(monotonic())
+		start = int(monotonic())
 		gpio.output(DOOR_UP, RUN)
 		while self.upProx != 1:
 			self.upProx = self.upProxState.update()
 			current = int(monotonic())
-			transitTime = current - self.startClock
+			transitTime = current - start
 			self.transitTimeLbl.setText(f'Transit\nTime\n{transitTime}')
 			self.repaint()
 			if transitTime > 90:
@@ -123,29 +122,28 @@ class main(QMainWindow):
 				self.downProxLbl.setText(self.doorState[self.downProx])
 		gpio.output(DOOR_UP, STOP)
 
-	def closeDoor(self): # this is a non blocking function
-		# if this is the start of closing get a start time
-		if self.doorStatus != 'closing':
-			self.startClock = int(monotonic())
-			self.doorStatus = 'closing'
-			print('Closing the Door')
-			gpio.output(DOOR_DOWN, RUN)
-
+	def closeDoor(self): # this is a blocking function
+		self.doorStatus = 'closing'
+		print('Closing the Door')
 		self.downProx = self.downProxState.update()
-		currentClock = int(monotonic())
-		transitTime = currentClock - self.startClock
-		self.transitTimeLbl.setText(f'Transit\nTime\n{transitTime}')
-		if transitTime > 90:
-			print('Door is Broken')
-			# set the door status to broken so it won't keep trying
-			self.doorStatus = 'broken'
-			gpio.output(DOOR_DOWN, STOP)
-		elif self.downProx == 1:
-			print('Door is Closed')
-			self.doorStatus = 'closed'
-			self.downProxLbl.setText(self.doorState[self.downProx])
-			self.upProxLbl.setText(self.doorState[self.upProx])
-			gpio.output(DOOR_DOWN, STOP)
+		start = int(monotonic())
+		gpio.output(DOOR_DOWN, RUN)
+		while self.downProx != 1:
+			self.downProx = self.downProxState.update()
+			current = int(monotonic())
+			transitTime = current - start
+			self.transitTimeLbl.setText(str(transitTime))
+			self.repaint()
+			if transitTime > 90:
+				print('Door is Broken')
+				self.doorStatus = 'broken'
+				break
+			elif self.downProx == 1:
+				print('Door is Closed')
+				self.doorStatus = 'closed'
+				self.downProxLbl.setText(self.doorState[self.downProx])
+				self.upProxLbl.setText(self.doorState[self.upProx])
+		gpio.output(DOOR_DOWN, STOP)
 
 	def updateSun(self):
 		self.todaySun = sun(PBMO.observer, date=datetime.today(), tzinfo=PBTZ)
@@ -167,27 +165,24 @@ class main(QMainWindow):
 			self.updateSun()
 			self.today = datetime.today().date()
 
+		openList = ['opening', 'open', 'broken']
+		closeList = ['closing', 'closed', 'broken']
 		now = datetime.now(PBTZ)
 		sunrise = self.todaySun['sunrise']
 		sunset = self.todaySun['sunset']
-		# set if the door should be open or not
 		if now > sunrise and now < sunset:
 			doorOpen = True
 		else:
 			doorOpen = False
-
-		# test to see if the door needs to be open
-		openList = ['open', 'broken']
 		if doorOpen and self.doorStatus not in openList:
 			if not self.upProx:
+				print('Calling openDoor')
 				self.openDoor()
 				if self.doorStatus == 'open':
 					print('openDoor Finished')
-
-		# test to see if the door needs to be closed
-		closeList = ['closed', 'broken']
 		if not doorOpen and self.doorStatus not in closeList:
 			if not self.downProx:
+				print('Calling closeDoor')
 				self.closeDoor()
 				if self.doorStatus == 'closed':
 					print('closeDoor Finished')

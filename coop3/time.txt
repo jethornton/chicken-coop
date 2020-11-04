@@ -1,0 +1,17 @@
+todaySun['dawn'].strftime('%I:%M %p')
+todaySun['sunrise'].strftime('%I:%M %p')
+todaySun['sunset'].strftime('%I:%M %p')
+todaySun['dusk'].strftime('%I:%M %p')
+
+dawn < datetime.now(PBTZ)
+dawn < datetime.now(PBTZ)
+dawn < datetime.now(PBTZ)
+dawn < datetime.now(PBTZ)
+
+datetime.now(PBTZ) < dawn
+datetime.now(PBTZ) > dawn
+datetime.now(PBTZ) <= dawn
+datetime.now(PBTZ) >= dawn
+datetime.now(PBTZ) == dawn
+
+
