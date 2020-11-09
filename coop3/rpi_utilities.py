@@ -1,5 +1,17 @@
-import RPi.GPIO as gpio
+import sys
 from time import monotonic_ns
+
+try:
+	import RPi.GPIO as gpio
+	gpio.setmode(gpio.BCM)
+	gpio.setwarnings(False)
+	OPEN = 0
+	CLOSED = 1
+	WAITING = 2
+except:
+	e = sys.exc_info()[0]
+	print(f'error is {e}')
+
 
 """
 Call the update function to find out if the pin has changed
@@ -17,12 +29,7 @@ if self.somePinState != None:
 	print(f'Some Pine Value is {self.somePinState}')
 """
 
-gpio.setmode(gpio.BCM)
-gpio.setwarnings(False)
 
-OPEN = 0
-CLOSED = 1
-WAITING = 2
 
 class debounce():
 	def __init__(self, *args, **kwargs):
@@ -52,8 +59,27 @@ class debounce():
 			#print(f'Duration {duration}')
 			if duration > self.ns_delay:
 				self.state = pin_state
-				print(f'Pin {self.pin} New State is {self.state}')
+				#print(f'Pin {self.pin} New State is {self.state}')
 				return self.state
 
 	def current(self):
 		return gpio.input(self.pin)
+
+class ledfade():
+	def __init__(self, *args, **kwargs):
+		if 'start' in kwargs:
+			self.start = kwargs.get('start')
+		if 'end' in kwargs:
+			self.end = kwargs.get('end')
+		if 'action' in kwargs:
+			self.action = kwargs.get('action')
+		self.transit = self.end - self.start
+
+	def ledpwm(self, p):
+		return int(0.181+(0.0482*p)+(0.00323*p*p)+(0.0000629*p*p*p))
+
+	def update(self, now):
+		if self.action == 'sunrise':
+			return self.ledpwm(((now - self.start) / self.transit) * 100)
+		elif self.action == 'sunset':
+			return self.ledpwm(100 - ((now - self.start) / self.transit) * 100)
