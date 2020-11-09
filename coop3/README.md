@@ -7,3 +7,5 @@ Setup the Raspberry Pi 3 B per
 Copy `__init__.py, coop3, coop3.ui, and rpi_utilities.py` to your local bin directory.
 Make sure coop3 is executable, right click on it in the file manager and select
 properties.
+
+Additional notes are in the coop3 file.

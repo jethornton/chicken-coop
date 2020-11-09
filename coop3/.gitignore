@@ -1,0 +1,9 @@
+__pycache__/
+*.egg-info
+*.pyc
+/old files
+*.txt
+docs/build
+notes
+coop3block
+old files
